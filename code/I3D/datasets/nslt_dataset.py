@@ -159,6 +159,7 @@ class NSLT(data_utl.Dataset):
         self.split_file = split_file
         self.transforms = transforms
         self.mode = mode
+        print(root)
         self.root = root
 
     def __getitem__(self, index):
@@ -178,6 +179,7 @@ class NSLT(data_utl.Dataset):
         except ValueError:
             start_f = start_frame
 
+        print(self.root)
         imgs = load_rgb_frames_from_video(self.root['word'], vid, start_f, total_frames)
 
         imgs, label = self.pad(imgs, label, total_frames)

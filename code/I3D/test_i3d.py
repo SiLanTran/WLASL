@@ -62,7 +62,11 @@ def run(init_lr=0.1,
         batch_size=3 * 15,
         save_model='',
         weights=None):
+
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
     # setup dataset
+    print(f'using device {device}')
     test_transforms = transforms.Compose([videotransforms.CenterCrop(224)])
 
     val_dataset = Dataset(train_split, 'test', root, mode, test_transforms)
@@ -76,13 +80,13 @@ def run(init_lr=0.1,
     # setup the model
     if mode == 'flow':
         i3d = InceptionI3d(400, in_channels=2)
-        i3d.load_state_dict(torch.load('weights/flow_imagenet.pt'))
+        #i3d.load_state_dict(torch.load('weights/flow_imagenet.pt'))
     else:
         i3d = InceptionI3d(400, in_channels=3)
-        i3d.load_state_dict(torch.load('weights/rgb_imagenet.pt'))
+        #i3d.load_state_dict(torch.load('weights/rgb_imagenet.pt'))
     i3d.replace_logits(num_classes)
-    i3d.load_state_dict(torch.load(weights))  # nslt_2000_000700.pt nslt_1000_010800 nslt_300_005100.pt(best_results)  nslt_300_005500.pt(results_reported) nslt_2000_011400
-    i3d.cuda()
+    i3d.load_state_dict(torch.load(weights,map_location=torch.device('cpu')))  # nslt_2000_000700.pt nslt_1000_010800 nslt_300_005100.pt(best_results)  nslt_300_005500.pt(results_reported) nslt_2000_011400
+    i3d.to(device)
     i3d = nn.DataParallel(i3d)
     i3d.eval()
 
@@ -264,9 +268,9 @@ if __name__ == '__main__':
     num_classes = 2000
     save_model = './checkpoints/'
 
-    root = '../../data/WLASL2000'
+    root = '../../data/WLASL_v0.3.json'
 
     train_split = 'preprocess/nslt_{}.json'.format(num_classes)
-    weights = 'archived/asl2000/FINAL_nslt_2000_iters=5104_top1=32.48_top5=57.31_top10=66.31.pt'
+    weights = '../../archived/asl2000/FINAL_nslt_2000_iters=5104_top1=32.48_top5=57.31_top10=66.31.pt'
 
     run(mode=mode, root=root, save_model=save_model, train_split=train_split, weights=weights)
